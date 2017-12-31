@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="CustomToolbar">
+
+        <!--右边图标-->
+        <attr name="rightButton" format="reference|string"/>
+        <!--是否要显示搜索框-->
+        <attr name="isShowSearchView" format="boolean"/>
+        <!--ToolBas中间的标题-->
+        <attr name="title" />
+
+    </declare-styleable>
+
+</resources>
