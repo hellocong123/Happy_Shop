@@ -257,7 +257,6 @@ public class CategoryFragment extends BaseFragment {
 
                 if (currentPage <= totalPage) {
                     loadMore();//加载更多
-                    Log.i(TAG, "onRefreshLoadMore: " + totalPage);
                 } else {
                     Toast.makeText(getContext(), "没有更多了", Toast.LENGTH_SHORT).show();
                     refreshLayout.finishRefreshLoadMore();//结束加载更多
