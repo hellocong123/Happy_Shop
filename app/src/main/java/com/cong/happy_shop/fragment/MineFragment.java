@@ -22,7 +22,7 @@ public class MineFragment extends BaseFragment {
     }
 
     @Override
-    protected void init() {
+    protected void initData() {
         mCustomToolbar.setToolTitle("我的");
     }
 }

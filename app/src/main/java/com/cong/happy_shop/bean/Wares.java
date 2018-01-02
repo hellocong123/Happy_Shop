@@ -13,6 +13,9 @@ public class Wares implements Serializable {
     private String name;
     private String imgUrl;
     private String description;
+
+
+
     private Float price;
 
 

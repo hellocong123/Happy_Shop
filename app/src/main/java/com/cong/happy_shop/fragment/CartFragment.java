@@ -23,7 +23,7 @@ public class CartFragment extends BaseFragment {
     }
 
     @Override
-    protected void init() {
+    protected void initData() {
 
 
         mCustomToolbar.setToolTitle("购物车");

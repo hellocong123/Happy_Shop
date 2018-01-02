@@ -65,6 +65,11 @@ public class OkHttpHelper {
         request(request, callback);
     }
 
+    public void get(String url,BaseCallback callback){
+        Request request = buildRequest(url, null, HttpMethodType.GET);
+        request(request, callback);
+    }
+
     //异步post请求
     public void post(String url, Map<String, Object> params, BaseCallback callback) {
         Request request = buildRequest(url, params, HttpMethodType.POST);

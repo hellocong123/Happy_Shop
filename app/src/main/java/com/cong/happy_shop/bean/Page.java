@@ -8,13 +8,21 @@ import java.util.List;
  */
 public class Page<T> {
 
-
+    private String copyright;
     private  int currentPage;
     private  int pageSize;
     private  int totalPage;
     private  int totalCount;
 
     private List<T> list;
+
+    public String getCopyright() {
+        return copyright;
+    }
+
+    public void setCopyright(String copyright) {
+        this.copyright = copyright;
+    }
 
 
     public int getCurrentPage() {
@@ -56,4 +64,6 @@ public class Page<T> {
     public void setList(List<T> list) {
         this.list = list;
     }
+
+
 }

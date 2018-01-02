@@ -44,7 +44,7 @@ public class HomeFragment extends BaseFragment {
     }
 
     @Override
-    protected void init() {
+    protected void initData() {
         mCustomToolbar.setShowSearchView(true);
 
         OkHttpHelper.getInstance().get(Constants.HOME_URL, null, new BaseCallback<Home>() {

@@ -32,12 +32,13 @@ public abstract class BaseFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         //布局创建完之后就做一些初始化的工作
-        init();
+        initData();
+
     }
 
+
     //初始化
-    protected void init() {
-    }
+    protected abstract void initData();
 
     //子类调用设置布局
     protected abstract int setLayoutId();

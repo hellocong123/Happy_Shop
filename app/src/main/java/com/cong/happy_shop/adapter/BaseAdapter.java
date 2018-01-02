@@ -63,12 +63,6 @@ public abstract class BaseAdapter<T, H extends BaseViewHolder> extends RecyclerV
     public abstract void convert(BaseViewHolder holder, T item);
 
 
-    //清空数据
-    public void clearData() {
-        mDatas.clear();
-        notifyItemRangeRemoved(0, mDatas.size());
-    }
-
     //移除某个条目
     public void removeItem(T t) {
 
@@ -77,23 +71,39 @@ public abstract class BaseAdapter<T, H extends BaseViewHolder> extends RecyclerV
         notifyItemRemoved(position);
     }
 
-    //得到数据
+    //得到Adapter里的数据
     public List<T> getDatas() {
         return mDatas;
     }
 
+    //清空数据
+    public void clearData() {
+        mDatas.clear();
+        notifyItemRangeRemoved(0, mDatas.size());
+    }
 
-    //添加一个条目
+    //添加数据：刷新的时候调用,调用下面这个addData()方法，只要传个position为0就可以了
     public void addData(List<T> datas) {
+        // mDatas.addAll(datas);
+        // notifyItemChanged(0, mDatas.size());
+
         addData(0, datas);
     }
 
-    public void addData(int position, List<T> list) {
-        if (list != null && list.size() > 0) {
-            for (T t : list) {
-                mDatas.add(position, t);
-                notifyItemInserted(position);
-            }
+    //根据position添加条目
+    public void addData(int position, List<T> datas) {
+        if (datas != null && datas.size() > 0) {
+            mDatas.addAll(datas);
+            notifyItemChanged(0, mDatas.size());
         }
     }
+
+//    public void addData(int position, List<T> list) {
+//        if (list != null && list.size() > 0) {
+//            for (T t : list) {
+//                mDatas.add(position, t);
+//                notifyItemInserted(position);
+//            }
+//        }
+//    }
 }
