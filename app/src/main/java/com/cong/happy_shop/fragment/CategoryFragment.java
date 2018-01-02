@@ -5,8 +5,10 @@ import android.content.Context;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.cjj.MaterialRefreshLayout;
@@ -32,6 +34,8 @@ import java.util.List;
 
 import butterknife.BindView;
 import okhttp3.Response;
+
+import static android.content.ContentValues.TAG;
 
 /**
  * Author ：Cong
@@ -59,16 +63,15 @@ public class CategoryFragment extends BaseFragment {
     private List<Wares> waresData;
     private CategoryWaresAdapter waresAdapter;
     private long categoryId = 1;
-
-    private int currPage = 1;
     private int pageSize = 10;
-
 
     //下拉刷新和上拉加载更多的状态
     private static final int STATE_NORMAL = 0;
     private static final int STATE_REFRESH = 1;
     private static final int STATE_MORE = 2;
     private int STATE = STATE_NORMAL;//当前状态
+    private int currentPage = 1;
+    private int totalPage = 3;
 
 
     @Override
@@ -83,53 +86,13 @@ public class CategoryFragment extends BaseFragment {
         initRefreshView();
     }
 
-    private void initRefreshView() {
-
-
-        refreshLayout.setLoadMore(true);
-        refreshLayout.setMaterialRefreshListener(new MaterialRefreshListener() {
-            @Override
-            public void onRefresh(MaterialRefreshLayout materialRefreshLayout) {
-
-                refreshData();//刷新数据
-            }
-
-            @Override
-            public void onRefreshLoadMore(MaterialRefreshLayout materialRefreshLayout) {
-
-                loadMore();//加载更多
-            }
-        });
-    }
-
-    private void loadMore() {
-
-        STATE = STATE_MORE;
-
-        getWaresData(categoryId);
-    }
-
-    private void refreshData() {
-
-        STATE = STATE_REFRESH;
-
-        currPage = ++currPage;
-
-    }
-
     private void loadData() {
 
         getNameData();
-
         getWaresData(categoryId);
-
         getBannerData();
 
-        //http://112.124.22.238:8081/course_api/wares/list?categoryId=categoryId&curPage=currPage&pageSize=pageSize
-
-
     }
-
 
     public void getNameData() {
 
@@ -148,7 +111,6 @@ public class CategoryFragment extends BaseFragment {
 
     }
 
-
     private void showNameData() {
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -161,7 +123,12 @@ public class CategoryFragment extends BaseFragment {
 
                 categoryId = category.getId();
 
+                //每点击一次就修改一次默认值，要不然就跟着上一次的修改状态进行请求，就会出现Bug
+                currentPage = 1;
+                STATE = STATE_NORMAL;
+
                 getWaresData(categoryId);
+
             }
         });
 
@@ -207,16 +174,24 @@ public class CategoryFragment extends BaseFragment {
 
     }
 
-
     public void getWaresData(long categoryId) {
-        String url = Contants.API.WARES_LIST + "?categoryId=" + categoryId + "&curPage=" + currPage + "&pageSize=" + pageSize;
+        //http://112.124.22.238:8081/course_api/wares/list?categoryId=1&curPage=1&pageSize=10
+        String url = Contants.API.WARES_LIST + "?categoryId=" + categoryId + "&curPage=" + currentPage + "&pageSize=" + pageSize;
         OkHttpHelper.getInstance().get(url, new BaseCallback<Page<Wares>>() {
 
             @Override
             public void onSuccess(Response response, Page<Wares> waresPage) {
 
+                //获得商品集合
                 waresData = waresPage.getList();
+                //每一页数量
+                pageSize = waresPage.getPageSize();
+                //当前页
+                currentPage = waresPage.getCurrentPage();
+                //总页数，由于服务返回来的都是0，所以这里要写死了，只能加载3页
+                //totalPage = waresPage.getTotalPage();
 
+                //显示商品数据
                 showWaresData();
             }
 
@@ -229,10 +204,82 @@ public class CategoryFragment extends BaseFragment {
 
     private void showWaresData() {
 
-        recyclerviewWares.setLayoutManager(new GridLayoutManager(getContext(), 2));
-        waresAdapter = new CategoryWaresAdapter(getContext(), waresData);
-        recyclerviewWares.setAdapter(waresAdapter);
+        switch (STATE) {
+            case STATE_NORMAL:
 
+                //设置布局管理器
+                recyclerviewWares.setLayoutManager(new GridLayoutManager(getContext(), 2));
+                //定义Adapter
+                waresAdapter = new CategoryWaresAdapter(getContext(), waresData);
+                //绑定Adapter到RecyclerView
+                recyclerviewWares.setAdapter(waresAdapter);
+
+                break;
+
+            case STATE_REFRESH:
+
+                //添加之前先清空之前的数据
+                waresAdapter.clearData();
+                //添加新数据
+                waresAdapter.addData(waresData);
+                //滚动到第一个条目
+                recyclerviewWares.scrollToPosition(0);
+                //完成刷新
+                refreshLayout.finishRefresh();
+                break;
+
+            case STATE_MORE:
+
+                //在原有数据的下面再次添加一页数据
+                waresAdapter.addData(waresAdapter.getDatas().size(), waresData);
+                //添加完数据后滚动到最后一个条目
+                recyclerviewWares.scrollToPosition(waresAdapter.getDatas().size());
+                //完成加载更多
+                refreshLayout.finishRefreshLoadMore();
+                break;
+        }
+
+
+    }
+
+    private void initRefreshView() {
+
+        refreshLayout.setLoadMore(true);
+        refreshLayout.setMaterialRefreshListener(new MaterialRefreshListener() {
+            @Override
+            public void onRefresh(MaterialRefreshLayout materialRefreshLayout) {
+
+                refreshData();//刷新数据
+            }
+
+            @Override
+            public void onRefreshLoadMore(MaterialRefreshLayout materialRefreshLayout) {
+
+                if (currentPage <= totalPage) {
+                    loadMore();//加载更多
+                    Log.i(TAG, "onRefreshLoadMore: " + totalPage);
+                } else {
+                    Toast.makeText(getContext(), "没有更多了", Toast.LENGTH_SHORT).show();
+                    refreshLayout.finishRefreshLoadMore();//结束加载更多
+                }
+            }
+        });
+    }
+
+    private void loadMore() {
+        //改变加载更多状态
+        STATE = STATE_MORE;
+        //第调用一次加载更多，就在当前页+1
+        currentPage = ++currentPage;
+        //根据商品ID请求网络，获得新的商品数据,这时就会根据这个商品的ID，去请求第二页的数据
+        getWaresData(categoryId);
+    }
+
+    private void refreshData() {
+        //刷新状态
+        STATE = STATE_REFRESH;
+        //根据商品ID请求网络，获得新的商品数据
+        getWaresData(categoryId);
     }
 
     public class GlideImageLoader extends ImageLoader {
